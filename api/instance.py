@@ -55,8 +55,9 @@ class UserInstance(Resource):
         # check userMode of CTFd
         user = current_user.get_current_user()
         user_id = user.id
-        source_id = user_id
-        logger.info("user %s request GET on challenge %s", source_id, challenge_id)
+        user_email = user.email
+        source_id = user_email  # Use email for oauth2-proxy compatibility
+        logger.info("user %s (email %s) request GET on challenge %s", user_id, source_id, challenge_id)
 
         if is_teams_mode():
             source_id = user.team_id
@@ -110,9 +111,10 @@ class UserInstance(Resource):
 
         user = current_user.get_current_user()
         user_id = int(user.id)
-        source_id = user_id
+        user_email = user.email
+        source_id = user_email  # Use email for oauth2-proxy compatibility
         logger.info(
-            "user %s request instance creation of challenge %s", source_id, challenge_id
+            "user %s (email %s) request instance creation of challenge %s", user_id, source_id, challenge_id
         )
         # check userMode of CTFd
         if is_teams_mode():
@@ -185,9 +187,10 @@ class UserInstance(Resource):
 
         user = current_user.get_current_user()
         user_id = int(user.id)
-        source_id = user_id
+        user_email = user.email
+        source_id = user_email  # Use email for oauth2-proxy compatibility
         logger.info(
-            "user %s request instance renew of challenge %s", source_id, challenge_id
+            "user %s (email %s) request instance renew of challenge %s", user_id, source_id, challenge_id
         )
         # check userMode of CTFd
         if is_teams_mode():
@@ -236,9 +239,10 @@ class UserInstance(Resource):
 
         user = current_user.get_current_user()
         user_id = int(user.id)
-        source_id = user_id
+        user_email = user.email
+        source_id = user_email  # Use email for oauth2-proxy compatibility
         logger.info(
-            "user %s request instance delete of challenge %s", user_id, challenge_id
+            "user %s (email %s) request instance delete of challenge %s", user_id, source_id, challenge_id
         )
         # check userMode of CTFd
         if is_teams_mode():

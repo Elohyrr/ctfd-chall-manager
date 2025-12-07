@@ -20,12 +20,12 @@ CM_API_TIMEOUT = get_config("chall-manager:chall-manager_api_timeout")
 # This is false positive
 
 
-def create_instance(challenge_id: int, source_id: int) -> dict | ChallManagerException:
+def create_instance(challenge_id: int, source_id: int | str) -> dict | ChallManagerException:
     """
     Spins up a challenge instance, iif the challenge is registered and no instance is yet running.
 
     :param challenge_id: id of challenge for the instance
-    :param source_id: id of source for the instance
+    :param source_id: id or email of source for the instance
     :return dict: JSON response of chall-manager API
     :raise ChallManagerException:
     """
@@ -66,13 +66,13 @@ def create_instance(challenge_id: int, source_id: int) -> dict | ChallManagerExc
     return result
 
 
-def delete_instance(challenge_id: int, source_id: int) -> dict | ChallManagerException:
+def delete_instance(challenge_id: int, source_id: int | str) -> dict | ChallManagerException:
     """
     After completion, the challenge instance is no longer required.
     This spins down the instance and removes if from filesystem.
 
     :param challenge_id: id of challenge for the instance
-    :param source_id: id of source for the instance
+    :param source_id: id or email of source for the instance
     :return dict: JSON response of chall-manager API
     :raise ChallManagerException:
     """
@@ -108,13 +108,13 @@ def delete_instance(challenge_id: int, source_id: int) -> dict | ChallManagerExc
     return r.json()
 
 
-def get_instance(challenge_id: int, source_id: int) -> dict | ChallManagerException:
+def get_instance(challenge_id: int, source_id: int | str) -> dict | ChallManagerException:
     """
     Once created, you can retrieve the instance information.
     If it has not been created yet, returns an error.
 
     :param challenge_id: id of challenge for the instance
-    :param source_id: id of source for the instance
+    :param source_id: id or email of source for the instance
     :return dict: JSON response of chall-manager API
     :raise ChallManagerException:
     """
@@ -158,12 +158,12 @@ def get_instance(challenge_id: int, source_id: int) -> dict | ChallManagerExcept
     return result
 
 
-def update_instance(challenge_id: int, source_id: int) -> dict | ChallManagerException:
+def update_instance(challenge_id: int, source_id: int | str) -> dict | ChallManagerException:
     """
     This will set the until date to the request time more the challenge timeout.
 
     :param challenge_id: id of challenge for the instance
-    :param source_id: id of source for the instance
+    :param source_id: id or email of source for the instance
     :return dict: JSON response of chall-manager API
     :raise ChallManagerException:
     """
@@ -204,11 +204,11 @@ def update_instance(challenge_id: int, source_id: int) -> dict | ChallManagerExc
     return result
 
 
-def query_instance(source_id: int) -> list | ChallManagerException:
+def query_instance(source_id: int | str) -> list | ChallManagerException:
     """
     This will return a list with all instances that exists on chall-manager for the source_id given.
 
-    :param source_id: id of source for the instance
+    :param source_id: id or email of source for the instance
     :return list: all instances for the source_id (e.g [{source_id:x, challenge_id, y},..])
     """
 

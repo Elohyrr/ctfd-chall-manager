@@ -66,7 +66,7 @@ def retrieve_all_ids(admin=False) -> dict[str, int] | ValueError:
     }
 
 
-def calculate_mana_used(source_id: int) -> int | ChallManagerException:
+def calculate_mana_used(source_id: int | str) -> int | ChallManagerException:
     """
     Calculate the mana used by source_id based on existing instances on Chall-Manager.
     return: mana_used (int)
@@ -133,7 +133,7 @@ def calculate_all_mana_used() -> dict | ChallManagerException:
     return source_ids
 
 
-def check_source_can_edit_instance(challenge_id: int, source_id: int) -> bool:
+def check_source_can_edit_instance(challenge_id: int, source_id: int | str) -> bool:
     """
     Check that the source_id can patch/delete an instance of challenge_id.
     False if challenge_id is shared.
@@ -153,7 +153,7 @@ def check_source_can_edit_instance(challenge_id: int, source_id: int) -> bool:
     return True
 
 
-def check_source_can_create_instance(challenge_id: int, source_id: int) -> bool:
+def check_source_can_create_instance(challenge_id: int, source_id: int | str) -> bool:
     """
     Checks that source_id can create instance of challenge_id.
     - need challenge to be editable (non-shared).
@@ -207,7 +207,7 @@ def check_source_can_create_instance(challenge_id: int, source_id: int) -> bool:
     return False
 
 
-def check_source_can_patch_instance(challenge_id: int, source_id: int) -> bool:
+def check_source_can_patch_instance(challenge_id: int, source_id: int | str) -> bool:
     """
     Checks that source_id can patch instance of challenge_id.
     """
