@@ -202,7 +202,8 @@ def load(app):  # pylint: disable=too-many-statements
         mana_used = 0
 
         user_id = int(current_user.get_current_user().id)
-        source_id = user_id
+        user_email = current_user.get_current_user().email
+        source_id = user_email  # Use email instead of ID for oauth2-proxy compatibility
         if is_teams_mode():
             source_id = current_user.get_current_user().team_id
             # If user has no team
@@ -214,7 +215,7 @@ def load(app):  # pylint: disable=too-many-statements
                 # return into team creation
                 return redirect(url_for("teams.private", next=request.full_path))
         try:
-            instances = query_instance(int(source_id))
+            instances = query_instance(source_id)
             logger.info("retrieved %s challenges successfully", len(instances))
         except ChallManagerException as e:
             logger.error("error querying challenges: %s", e)
