@@ -70,25 +70,42 @@ class UserInstance(Resource):
             logger.warning("Missing argument: challenge_id or source_id")
             abort(400, "missing argument challenge_id of source_id", success=False)
 
+        # GitOps mode: find challenge by scenario first, then by ID
+        challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+        if not challenge:
+            challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+        
+        if not challenge:
+            logger.error("Challenge %s not found", challenge_id)
+            abort(404, "challenge not found", success=False)
+        
         # if challenge is shared
-        challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
         if challenge.shared:
             source_id = 0
+        
+        # GitOps mode: use scenario as challenge ID for chall-operator
+        challenge_id_for_cm = challenge.scenario if challenge.scenario else challenge_id
 
         try:
             logger.debug(
-                "getting instance for challenge_id: %s, source_id: %s",
+                "getting instance for challenge_id: %s (scenario: %s), source_id: %s",
                 challenge_id,
+                challenge_id_for_cm,
                 source_id,
             )
-            result = get_instance(challenge_id, source_id)
+            result = get_instance(challenge_id_for_cm, source_id)
             logger.info("instance retrieved successfully : %s", result)
         except ChallManagerException as e:
-            logger.error("error while getting instance: %s", e)
+            # Instance not found is expected when no instance exists
+            logger.debug("instance not found for challenge %s: %s", challenge_id, e)
             return {
-                "success": False,
-                "message": "error while getting instance info, contact admins",
-            }, 500
+                "success": True,
+                "data": {
+                    "since": None,
+                    "until": None,
+                    "connectionInfo": None,
+                },
+            }, 200
 
         # return only necessary values
         data = {}
@@ -124,6 +141,17 @@ class UserInstance(Resource):
                 logger.info("user %s has no team, abort", user_id)
                 abort(403, "unauthorized", success=False)
 
+        # GitOps mode: find challenge by scenario first, then by ID
+        challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+        if not challenge:
+            challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+        
+        if not challenge:
+            logger.error("Challenge %s not found", challenge_id)
+            abort(404, "challenge not found", success=False)
+        
+        challenge_id_for_cm = challenge.scenario if challenge.scenario else challenge_id
+
         lock = load_or_store(str(source_id))
         if lock.is_global_for_source_locked():
             logger.debug("instance creation already in progress, abort")
@@ -137,11 +165,12 @@ class UserInstance(Resource):
                 abort(403, "You or your team used up all your mana.", success=False)
 
             logger.debug(
-                "creating instance for challenge_id: %s, source_id: %s",
+                "creating instance for challenge_id: %s (scenario: %s), source_id: %s",
                 challenge_id,
+                challenge_id_for_cm,
                 source_id,
             )
-            result = create_instance(challenge_id, source_id)
+            result = create_instance(challenge_id_for_cm, source_id)
             logger.info(
                 "instance for challenge_id: %s, source_id: %s created successfully",
                 challenge_id,
@@ -200,16 +229,28 @@ class UserInstance(Resource):
                 logger.info("user %s has no team, abort", user_id)
                 abort(403, "unauthorized", success=False)
 
+        # GitOps mode: find challenge by scenario first, then by ID
+        challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+        if not challenge:
+            challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+        
+        if not challenge:
+            logger.error("Challenge %s not found", challenge_id)
+            abort(404, "challenge not found", success=False)
+        
+        challenge_id_for_cm = challenge.scenario if challenge.scenario else challenge_id
+
         if not check_source_can_patch_instance(challenge_id, source_id):
             abort(403, "unauthorized", success=False)
 
         try:
             logger.debug(
-                "updating instance for challenge_id: %s, source_id: %s",
+                "updating instance for challenge_id: %s (scenario: %s), source_id: %s",
                 challenge_id,
+                challenge_id_for_cm,
                 source_id,
             )
-            update_instance(challenge_id, source_id)
+            update_instance(challenge_id_for_cm, source_id)
             logger.info(
                 "instance for challenge_id: %s, source_id: %s updated successfully",
                 challenge_id,
@@ -252,6 +293,17 @@ class UserInstance(Resource):
                 logger.info("user %s has no team, abort", user_id)
                 abort(403, "unauthorized", success=False)
 
+        # GitOps mode: find challenge by scenario first, then by ID
+        challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+        if not challenge:
+            challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+        
+        if not challenge:
+            logger.error("Challenge %s not found", challenge_id)
+            abort(404, "challenge not found", success=False)
+        
+        challenge_id_for_cm = challenge.scenario if challenge.scenario else challenge_id
+
         lock = load_or_store(str(source_id))
         if lock.is_global_for_source_locked():
             logger.debug("instance deletion already in progress, abort")
@@ -266,11 +318,12 @@ class UserInstance(Resource):
                 abort(403, "unauthorized", success=False)
 
             logger.debug(
-                "deleting instance for challenge_id: %s, source_id: %s",
+                "deleting instance for challenge_id: %s (scenario: %s), source_id: %s",
                 challenge_id,
+                challenge_id_for_cm,
                 source_id,
             )
-            delete_instance(challenge_id, source_id)
+            delete_instance(challenge_id_for_cm, source_id)
             logger.info(
                 "instance for challenge_id: %s, source_id: %s deleted successfully",
                 challenge_id,

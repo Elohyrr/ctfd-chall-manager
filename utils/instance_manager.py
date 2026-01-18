@@ -53,11 +53,16 @@ def create_instance(challenge_id: int, source_id: int | str) -> dict | ChallMana
             message="an exception occurred while communicating with CM"
         ) from e
 
-    if r.status_code != 200:
-        if r.json()["code"] == 2:
-            message = r.json()["message"]
+    if r.status_code not in [200, 201]:
+        response_data = r.json()
+        if "code" in response_data and response_data["code"] == 2:
+            message = response_data["message"]
             logger.error("chall-manager return an error: %s", message)
             raise ChallManagerException(message=message)
+        else:
+            error_msg = response_data.get("message", "Unknown error")
+            logger.error("chall-manager return an error: %s", error_msg)
+            raise ChallManagerException(message=error_msg)
 
     # store the informations on cache
     result = r.json()
@@ -190,10 +195,15 @@ def update_instance(challenge_id: int, source_id: int | str) -> dict | ChallMana
         raise ChallManagerException(message="error while communicating with CM") from e
 
     if r.status_code != 200:
-        if r.json()["code"] == 2:
-            message = r.json()["message"]
+        response_data = r.json()
+        if "code" in response_data and response_data["code"] == 2:
+            message = response_data["message"]
             logger.error("chall-manager return an error: %s", message)
             raise ChallManagerException(message=message)
+        else:
+            error_msg = response_data.get("message", "Unknown error")
+            logger.error("chall-manager return an error: %s", error_msg)
+            raise ChallManagerException(message=error_msg)
 
     # update informations for the next GET request
     result = r.json()

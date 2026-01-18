@@ -140,7 +140,15 @@ def check_source_can_edit_instance(challenge_id: int, source_id: int | str) -> b
     Default: True
     """
 
-    challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+    # GitOps mode: find challenge by scenario first, then by ID
+    challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+    if not challenge:
+        challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+    
+    if not challenge:
+        logger.error("Challenge %s not found", challenge_id)
+        return False
+    
     # if instance must be shared (admins only can deploy it)
     if challenge.shared:
         logger.warning(
@@ -162,11 +170,18 @@ def check_source_can_create_instance(challenge_id: int, source_id: int | str) ->
     if not check_source_can_edit_instance(challenge_id, source_id):
         return False
 
-    challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+    # GitOps mode: find challenge by scenario first, then by ID
+    challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+    if not challenge:
+        challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+    
+    if not challenge:
+        logger.error("Challenge %s not found", challenge_id)
+        return False
 
     # if mana feature is not enabled
     cm_mana_total = get_config("chall-manager:chall-manager_mana_total")
-    if cm_mana_total <= 0:
+    if cm_mana_total is None or cm_mana_total <= 0:
         logger.debug(
             "source_id %s can edit an instance of challenge_id %s, reason: mana not enabled",
             source_id,
@@ -214,7 +229,15 @@ def check_source_can_patch_instance(challenge_id: int, source_id: int | str) -> 
     if not check_source_can_edit_instance(challenge_id, source_id):
         return False
 
-    challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+    # GitOps mode: find challenge by scenario first, then by ID
+    challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+    if not challenge:
+        challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+    
+    if not challenge:
+        logger.error("Challenge %s not found", challenge_id)
+        return False
+    
     if not challenge.timeout:
         logger.warning(
             "unauthorized attempt to patch non timeout instance challenge_id: %s, source_id: %s",

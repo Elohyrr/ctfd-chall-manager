@@ -30,11 +30,20 @@ def register_api_endpoints():
     """
     Add namespaces of the CTFd-chall-manager plugin in CTFd /api/v1/plugins
     """
-    # add resources to namespaces
-    admin_namespace.add_resource(AdminInstance, "/instance")
-    user_namespace.add_resource(UserInstance, "/instance")
-    user_namespace.add_resource(UserMana, "/mana")
+    try:
+        logger.info("Registering API endpoints...")
+        # add resources to namespaces
+        admin_namespace.add_resource(AdminInstance, "/instance")
+        logger.debug("AdminInstance resource added")
+        user_namespace.add_resource(UserInstance, "/instance")
+        logger.debug("UserInstance resource added")
+        user_namespace.add_resource(UserMana, "/mana")
+        logger.debug("UserMana resource added")
 
-    # register namespace in CTFd
-    CTFd_API_v1.add_namespace(admin_namespace, path="/plugins/ctfd-chall-manager/admin")
-    CTFd_API_v1.add_namespace(user_namespace, path="/plugins/ctfd-chall-manager")
+        # register namespace in CTFd
+        CTFd_API_v1.add_namespace(admin_namespace, path="/plugins/ctfd-chall-manager/admin")
+        logger.info("Admin namespace registered at /plugins/ctfd-chall-manager/admin")
+        CTFd_API_v1.add_namespace(user_namespace, path="/plugins/ctfd-chall-manager")
+        logger.info("User namespace registered at /plugins/ctfd-chall-manager")
+    except Exception as e:
+        logger.error("Failed to register API endpoints: %s", e, exc_info=True)

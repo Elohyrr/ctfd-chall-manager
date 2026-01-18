@@ -15,10 +15,13 @@ def challenge_visible(func):
     """
     This decorator abort the request if the challenge is not visible.
     The request is NOT abort if the user is admin.
+    GitOps mode: accepts both CTFd ID and scenario as challengeId.
     """
 
     @functools.wraps(func)
     def _challenge_visible(*args, **kwargs):
+        from CTFd.plugins.ctfd_chall_manager.models import DynamicIaCChallenge
+        
         # Get challengeId from query string
         challenge_id = request.args.get("challengeId")
 
@@ -30,14 +33,23 @@ def challenge_visible(func):
         if not challenge_id:
             abort(400, "missing args", success=False)
 
+        # GitOps mode: try to find challenge by scenario first, then by ID
+        challenge = None
+        
+        # Try by scenario (for GitOps workflow)
+        challenge = DynamicIaCChallenge.query.filter(
+            DynamicIaCChallenge.scenario == challenge_id
+        ).first()
+        
+        # Fallback: try by ID (original behavior)
+        if not challenge:
+            challenge = Challenges.query.filter(Challenges.id == challenge_id).first()
+
         if is_admin():
-            if not Challenges.query.filter(Challenges.id == challenge_id).first():
+            if not challenge:
                 abort(404, "no such challenge", success=False)
         else:
-            if not Challenges.query.filter(
-                Challenges.id == challenge_id,
-                and_(Challenges.state != "hidden", Challenges.state != "locked"),
-            ).first():
+            if not challenge or challenge.state == "hidden" or challenge.state == "locked":
                 abort(403, "challenge not visible", success=False)
         return func(*args, **kwargs)
 

@@ -41,7 +41,9 @@ function formatCountDown(countdown) {
 
 function loadInfo() {
     var challenge_id = CTFd._internal.challenge.data.id;
-    var url = "/api/v1/plugins/ctfd-chall-manager/instance?challengeId=" + challenge_id;
+    // GitOps mode: use scenario as challengeId for chall-operator
+    var scenario = CTFd._internal.challenge.data.scenario || challenge_id.toString();
+    var url = "/api/v1/plugins/ctfd-chall-manager/instance?challengeId=" + scenario;
 
 
     CTFd.fetch(url, {
@@ -158,13 +160,15 @@ function loadInfo() {
 CTFd._internal.challenge.destroy = function() {
     return new Promise((resolve, reject) => {
         var challenge_id = CTFd._internal.challenge.data.id;
+        // GitOps mode: use scenario as challengeId for chall-operator
+        var scenario = CTFd._internal.challenge.data.scenario || challenge_id.toString();
         var url = "/api/v1/plugins/ctfd-chall-manager/instance"
 
         $('#whale-button-destroy').text("Waiting...");
         $('#whale-button-destroy').prop('disabled', true);
 
         let params = {
-            "challengeId": challenge_id,
+            "challengeId": scenario,
         };
     
 
@@ -208,13 +212,15 @@ CTFd._internal.challenge.destroy = function() {
 
 CTFd._internal.challenge.renew = function () {
     var challenge_id = CTFd._internal.challenge.data.id;
+    // GitOps mode: use scenario as challengeId for chall-operator
+    var scenario = CTFd._internal.challenge.data.scenario || challenge_id.toString();
     var url = "/api/v1/plugins/ctfd-chall-manager/instance";
 
     $('#whale-button-renew').text("Waiting...");
     $('#whale-button-renew').prop('disabled', true);
 
     var params = {
-        "challengeId": challenge_id,
+        "challengeId": scenario,
     };
 
     CTFd.fetch(url, {
@@ -257,13 +263,15 @@ CTFd._internal.challenge.renew = function () {
 CTFd._internal.challenge.boot = function() {
     return new Promise((resolve, reject) => {
         var challenge_id = CTFd._internal.challenge.data.id;
+        // GitOps mode: use scenario as challengeId for chall-operator
+        var scenario = CTFd._internal.challenge.data.scenario || challenge_id.toString();
         var url = "/api/v1/plugins/ctfd-chall-manager/instance";
 
         $('#whale-button-boot').text("Waiting...");
         $('#whale-button-boot').prop('disabled', true);
 
         var params = {
-            "challengeId": challenge_id.toString()
+            "challengeId": scenario
         };
 
         CTFd.fetch(url, {

@@ -32,7 +32,8 @@ class UserMana(Resource):
         Retrieve the actual mana used by the sourceId.
         If CTFd is in Team mode, the mana_used will be amound all players of a team.
         """
-        mana_total = int(get_config("chall-manager:chall-manager_mana_total"))
+        mana_total_raw = get_config("chall-manager:chall-manager_mana_total")
+        mana_total = int(mana_total_raw) if mana_total_raw is not None else 0
 
         # If mana disabled, return 0 immediatly
         if mana_total == 0:

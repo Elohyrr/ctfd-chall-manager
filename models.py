@@ -437,9 +437,12 @@ class DynamicIaCValueChallenge(DynamicValueChallenge):
             submission,
         )
 
+        # GitOps mode: use scenario if defined, otherwise use challenge.id
+        challenge_id_for_cm = challenge.scenario if challenge.scenario else challenge.id
+
         # checks that the instance is alive
         try:
-            data = get_instance(challenge.id, source_id)
+            data = get_instance(challenge_id_for_cm, source_id)
         except ChallManagerException as e:
             logger.error("error occurred while getting instance: %s", e)
             return ChallengeResponse(
@@ -514,6 +517,9 @@ class DynamicIaCValueChallenge(DynamicValueChallenge):
         if challenge.shared:
             source_id = 0
 
+        # GitOps mode: use scenario if defined, otherwise use challenge.id
+        challenge_id_for_cm = challenge.scenario if challenge.scenario else challenge.id
+
         if challenge.destroy_on_flag:
             logger.info(
                 "challenge %s solved, destroy instance for source %s",
@@ -521,7 +527,7 @@ class DynamicIaCValueChallenge(DynamicValueChallenge):
                 source_id,
             )
             try:
-                delete_instance(challenge.id, source_id)
+                delete_instance(challenge_id_for_cm, source_id)
             except ChallManagerException as e:
                 logger.warning(
                     "failed to delete challenge %s for source %s, \
