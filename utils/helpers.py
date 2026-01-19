@@ -50,6 +50,14 @@ def retrieve_all_ids(admin=False) -> dict[str, int] | ValueError:
     challenge_id = int(challenge_id)
     source_id = int(source_id)
 
+    # GitOps mode: find challenge by scenario first, then by ID
+    challenge = DynamicIaCChallenge.query.filter_by(scenario=str(challenge_id)).first()
+    if not challenge:
+        challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+    
+    # Use scenario if defined, otherwise use challenge.id
+    challenge_id_for_cm = challenge.scenario if (challenge and challenge.scenario) else challenge_id
+
     if not admin:
         source_id = user_id
         if is_teams_mode():
@@ -62,7 +70,7 @@ def retrieve_all_ids(admin=False) -> dict[str, int] | ValueError:
         "user_id": user_id,
         "team_id": team_id,
         "source_id": source_id,
-        "challenge_id": challenge_id,
+        "challenge_id": challenge_id_for_cm,
     }
 
 

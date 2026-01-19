@@ -196,7 +196,8 @@ def load(app):  # pylint: disable=too-many-statements
     @page_blueprint.route("/instances")
     @authed_only
     def instances():  # pylint: disable=unused-variable
-        mana_total = int(get_config("chall-manager:chall-manager_mana_total"))
+        mana_total = get_config("chall-manager:chall-manager_mana_total")
+        mana_total = int(mana_total) if mana_total is not None else 0
         mana_enabled = mana_total > 0
         mana_remaining = mana_total
         mana_used = 0
@@ -229,8 +230,16 @@ def load(app):  # pylint: disable=too-many-statements
 
         for i in instances:
             # Add CTFd infos, admin=False means do no display hidden challenges
-            challenge_entries = get_all_challenges(admin=False, id=i["challengeId"])
-            challenge = DynamicIaCChallenge.query.filter_by(id=i["challengeId"]).first()
+            # GitOps mode: find challenge by scenario first, then by ID
+            # API Gateway returns challenge_id (snake_case)
+            challenge_id = i.get("challenge_id", i.get("challengeId"))
+            challenge = DynamicIaCChallenge.query.filter_by(scenario=challenge_id).first()
+            if not challenge:
+                challenge = DynamicIaCChallenge.query.filter_by(id=challenge_id).first()
+            
+            # Get challenge entry for visibility check
+            challenge_id_for_lookup = challenge.id if challenge else challenge_id
+            challenge_entries = get_all_challenges(admin=False, id=challenge_id_for_lookup)
             # if challenge is not hidden
             if len(challenge_entries) == 1:
                 i["challengeName"] = challenge_entries[0].name
@@ -238,9 +247,9 @@ def load(app):  # pylint: disable=too-many-statements
             elif challenge is None:
                 logger.warning(
                     "challenge_id %s referenced by Chall-Manager does not exist anymore in CTFd",
-                    i["challengeId"],
+                    challenge_id,
                 )
-                i["challengeName"] = f"Unknown challenge #{i['challengeId']}"
+                i["challengeName"] = f"Unknown challenge #{challenge_id}"
                 i["challengeCategory"] = "unknown"
                 i["connectionInfo"] = "unavailable"
             else:  # challenge exists but is hidden
